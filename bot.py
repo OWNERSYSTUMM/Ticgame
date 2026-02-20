@@ -22,7 +22,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def mention_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def mention_handler(update, context):
+    if update.effective_chat.type == "private":
+        return
+
+    if f"@{context.bot.username}" not in update.message.text:
+        return
+
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton("❌", callback_data="choose_X"),
@@ -30,6 +36,7 @@ async def mention_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ],
         [InlineKeyboardButton("🤖 AI", callback_data="choose_AI")]
     ])
+
     await update.message.reply_text("‎", reply_markup=keyboard)
 
 
