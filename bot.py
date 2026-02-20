@@ -26,7 +26,13 @@ async def mention_handler(update, context):
     if update.effective_chat.type == "private":
         return
 
-    if f"@{context.bot.username}" not in update.message.text:
+    if not update.message or not update.message.text:
+        return
+
+    bot_username = context.bot.username.lower()
+    text = update.message.text.lower()
+
+    if f"@{bot_username}" not in text:
         return
 
     keyboard = InlineKeyboardMarkup([
@@ -156,7 +162,7 @@ def main():
     app.add_handler(CommandHandler("owner", owner))
     app.add_handler(
         MessageHandler(
-            filters.TEXT & filters.Entity("mention"),
+            filters.TEXT & (~filters.COMMAND),
             mention_handler
         )
     )
