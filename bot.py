@@ -1,4 +1,5 @@
 import uuid
+import random
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -138,26 +139,39 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not game:
             return
 
-        # 🔒 Only joined players allowed
+        # 🔒 Spectator Click
         if user.id not in [game["player1"], game["player2"]]:
-            await query.answer("Na munna 😏 Ye tera game nahi hai!", show_alert=True)
+            await query.answer(
+                "Na munna 😏 Ye tera game nahi hai!",
+                show_alert=True
+            )
             return
 
-        # 🔒 Only turn player allowed
+        # Identify current turn player
         current_turn_player = (
             game["player1"]
             if game["turn"] == game["symbol1"]
             else game["player2"]
         )
 
+        # 🔒 Wrong Turn Click
         if user.id != current_turn_player:
-            await query.answer("⏳ Ruk ja bhai, tera turn nahi hai!", show_alert=True)
+            funny_msgs = [
+                f"😂 Oye {user.first_name}! Abhi tera turn nahi hai!",
+                "⏳ Ruk ja bhai, hero mat ban!",
+                "😏 Sabka time aata hai...",
+                "🫵 Abhi tera number nahi aaya!"
+            ]
+            await query.answer(random.choice(funny_msgs), show_alert=True)
             return
 
         index = int(data.split("_")[1])
 
         if game["board"][index] != " ":
-            await query.answer("❌ Ye box already filled hai!", show_alert=True)
+            await query.answer(
+                "❌ Ye box already filled hai!",
+                show_alert=True
+            )
             return
 
         # ✅ Valid Move
