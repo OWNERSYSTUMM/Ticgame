@@ -43,8 +43,8 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.inline_query
 
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("▶️ Play", callback_data="start_game")],
-        [InlineKeyboardButton("🤖 AI Mode", callback_data="start_ai")]
+        [InlineKeyboardButton("Play", callback_data="start_game")],
+        [InlineKeyboardButton("AI Mode", callback_data="start_ai")]
     ])
 
     result = InlineQueryResultArticle(
@@ -213,9 +213,32 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Owner", url="https://t.me/APNA_SYSTEM"),
+            InlineKeyboardButton("Support", url="https://t.me/SystemQuizUpdates"),
+        ]
+    ])
+
+    text = (
+        "🎮 *Welcome to Tic Tac Toe Bot!*\n\n"
+        "Play classic ❌⭕ battles with friends directly in groups.\n\n"
+        "✨ *Features:*\n"
+        "• Inline instant game\n"
+        "• Multiplayer mode\n"
+        "• AI mode\n"
+        "• Leaderboard & Coins\n\n"
+        "🚀 *How to Play?*\n"
+        "Type:\n"
+        "`@YourBotUsername`\n\n"
+        "Select game → Invite friend → Start playing!\n\n"
+        "👇 Need help? Use buttons below."
+    )
+
     await update.message.reply_text(
-        "🎮 Tic Tac Toe Bot\n\n"
-        "Use inline:\n@YourBotUsername"
+        text,
+        reply_markup=keyboard,
+        parse_mode="Markdown"
     )
 
 
