@@ -151,9 +151,34 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         game["board"][index] = game["turn"]
         winner = check_winner(game["board"])
 
+        # 🔥 WINNER BLOCK UPDATED
         if winner:
-            text = "🤝 Draw!" if winner == "Draw" else f"🏆 Winner!"
-            await query.edit_message_text(text)
+
+            if winner == "Draw":
+                result_text = "🤝 It's a Draw!"
+            else:
+                winner_name = (
+                    game["player1_name"]
+                    if winner == game["symbol1"]
+                    else game["player2_name"]
+                )
+
+                loser_name = (
+                    game["player2_name"]
+                    if winner == game["symbol1"]
+                    else game["player1_name"]
+                )
+
+                result_text = (
+                    f"🏆 Winner: {winner_name}\n"
+                    f"💀 Loser: {loser_name}"
+                )
+
+            await query.edit_message_text(
+                build_game_text(game) + "\n" + result_text,
+                reply_markup=build_board(game["board"])
+            )
+
             delete_game(game_key)
             return
 
@@ -188,9 +213,35 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 game["board"][ai_index] = game["symbol2"]
 
             winner = check_winner(game["board"])
+
+            # 🔥 AI WINNER BLOCK UPDATED
             if winner:
-                text = "🤝 Draw!" if winner == "Draw" else "🤖 AI Wins!"
-                await query.edit_message_text(text)
+
+                if winner == "Draw":
+                    result_text = "🤝 It's a Draw!"
+                else:
+                    winner_name = (
+                        game["player1_name"]
+                        if winner == game["symbol1"]
+                        else game["player2_name"]
+                    )
+
+                    loser_name = (
+                        game["player2_name"]
+                        if winner == game["symbol1"]
+                        else game["player1_name"]
+                    )
+
+                    result_text = (
+                        f"🏆 Winner: {winner_name}\n"
+                        f"💀 Loser: {loser_name}"
+                    )
+
+                await query.edit_message_text(
+                    build_game_text(game) + "\n" + result_text,
+                    reply_markup=build_board(game["board"])
+                )
+
                 delete_game(game_key)
                 return
 
