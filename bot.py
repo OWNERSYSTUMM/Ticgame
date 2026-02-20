@@ -1,167 +1,155 @@
-import os
-from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
     CallbackQueryHandler,
     ContextTypes,
     MessageHandler,
+    CommandHandler,
     filters,
 )
 
-from tictactoe import new_board, build_keyboard, check_winner
+from config import BOT_TOKEN, OWNER_ID
+from tictactoe import build_board, check_winner, ai_move
+from game_manager import create_game, get_game, delete_game
+import database as db
 
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
 
-
-# 🎮 When bot is mentioned
-async def mention_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_chat.type == "private":
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.type != "private":
         return
-
-    keyboard = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("❌ Play as X", callback_data="choose_X"),
-            InlineKeyboardButton("⭕ Play as O", callback_data="choose_O"),
-        ]
-    ])
-
     await update.message.reply_text(
-        "🎮 Tic Tac Toe\n\nChoose your side:",
-        reply_markup=keyboard
+        "🎮 Tic Tac Toe Bot\n\nTag me in group to play.\n/leaderboard"
     )
 
 
-# 🎮 Button handler
+async def mention_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("❌", callback_data="choose_X"),
+            InlineKeyboardButton("⭕", callback_data="choose_O"),
+        ],
+        [InlineKeyboardButton("🤖 AI", callback_data="choose_AI")]
+    ])
+    await update.message.reply_text("‎", reply_markup=keyboard)
+
+
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    data = query.data
+    message_id = query.message.message_id
     user = query.from_user
+    data = query.data
 
-    # 🔹 Choose Symbol
     if data.startswith("choose_"):
-        if context.chat_data.get("player1"):
-            return
-
         symbol = "❌" if data == "choose_X" else "⭕"
-        opposite = "⭕" if symbol == "❌" else "❌"
+        ai = True if data == "choose_AI" else False
 
-        context.chat_data["player1"] = user.id
-        context.chat_data["player1_name"] = user.first_name
-        context.chat_data["player1_symbol"] = symbol
-        context.chat_data["player2_symbol"] = opposite
-        context.chat_data["waiting"] = True
+        create_game(message_id, user.id, user.first_name, symbol, ai)
+        db.get_user(user.id, user.first_name)
 
-        join_btn = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🎮 Join Game", callback_data="join_game")]
-        ])
+        if ai:
+            await query.edit_message_reply_markup(
+                reply_markup=build_board(get_game(message_id)["board"])
+            )
+        else:
+            join_btn = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Join", callback_data="join")]]
+            )
+            await query.edit_message_reply_markup(reply_markup=join_btn)
+        return
 
-        await query.edit_message_text(
-            f"🎮 Tic Tac Toe\n\n"
-            f"{user.first_name} chose {symbol}\n"
-            f"Waiting for opponent...",
-            reply_markup=join_btn
+    if data == "join":
+        game = get_game(message_id)
+        if not game or user.id == game["player1"]:
+            return
+
+        game["player2"] = user.id
+        game["player2_name"] = user.first_name
+        db.get_user(user.id, user.first_name)
+
+        await query.edit_message_reply_markup(
+            reply_markup=build_board(game["board"])
         )
         return
 
-    # 🔹 Join Game
-    if data == "join_game":
-        if user.id == context.chat_data.get("player1"):
-            return
-
-        context.chat_data["player2"] = user.id
-        context.chat_data["player2_name"] = user.first_name
-        context.chat_data["board"] = new_board()
-        context.chat_data["turn"] = context.chat_data["player1_symbol"]
-        context.chat_data["waiting"] = False
-
-        await query.edit_message_text(
-            f"🎮 Game Started!\n\n"
-            f"{context.chat_data['player1_name']} = {context.chat_data['player1_symbol']}\n"
-            f"{context.chat_data['player2_name']} = {context.chat_data['player2_symbol']}\n\n"
-            f"Turn: {context.chat_data['player1_name']}",
-            reply_markup=build_keyboard(context.chat_data["board"])
-        )
-        return
-
-    # 🔹 Game Moves
-    if data.startswith("ttt_"):
-        if context.chat_data.get("waiting"):
-            return
-
-        board = context.chat_data.get("board")
-        turn = context.chat_data.get("turn")
-
-        if not board:
-            return
-
-        # Turn validation
-        if turn == context.chat_data["player1_symbol"] and user.id != context.chat_data["player1"]:
-            return
-
-        if turn == context.chat_data["player2_symbol"] and user.id != context.chat_data["player2"]:
+    if data.startswith("move_"):
+        game = get_game(message_id)
+        if not game:
             return
 
         index = int(data.split("_")[1])
-
-        if board[index] != " ":
+        if game["board"][index] != " ":
             return
 
-        board[index] = turn
-
-        winner = check_winner(board)
+        game["board"][index] = game["turn"]
+        winner = check_winner(game["board"])
 
         if winner:
             if winner == "Draw":
-                text = "🤝 It's a Draw!"
+                db.add_draw(game["player1"])
+                if game["player2"]:
+                    db.add_draw(game["player2"])
+                text = "🤝 Draw!"
             else:
-                winner_name = (
-                    context.chat_data["player1_name"]
-                    if winner == context.chat_data["player1_symbol"]
-                    else context.chat_data["player2_name"]
+                winner_id = (
+                    game["player1"]
+                    if winner == game["symbol1"]
+                    else game["player2"]
                 )
-                text = f"🏆 Winner: {winner_name}"
+                loser_id = (
+                    game["player2"]
+                    if winner_id == game["player1"]
+                    else game["player1"]
+                )
+                db.add_win(winner_id)
+                if loser_id:
+                    db.add_loss(loser_id)
+                text = f"🏆 {user.first_name} Wins!"
 
-            await query.edit_message_text(
-                text,
-                reply_markup=build_keyboard(board, game_over=True)
-            )
-            context.chat_data.clear()
+            await query.edit_message_text(text)
+            delete_game(message_id)
             return
 
-        # Switch turn
-        context.chat_data["turn"] = (
-            context.chat_data["player2_symbol"]
-            if turn == context.chat_data["player1_symbol"]
-            else context.chat_data["player1_symbol"]
+        if game["ai"]:
+            ai_index = ai_move(game["board"])
+            if ai_index is not None:
+                game["board"][ai_index] = game["symbol2"]
+
+        game["turn"] = (
+            game["symbol2"]
+            if game["turn"] == game["symbol1"]
+            else game["symbol1"]
         )
 
-        next_player = (
-            context.chat_data["player1_name"]
-            if context.chat_data["turn"] == context.chat_data["player1_symbol"]
-            else context.chat_data["player2_name"]
+        await query.edit_message_reply_markup(
+            reply_markup=build_board(game["board"])
         )
 
-        await query.edit_message_text(
-            f"🎮 Tic Tac Toe\n\n"
-            f"{context.chat_data['player1_name']} = {context.chat_data['player1_symbol']}\n"
-            f"{context.chat_data['player2_name']} = {context.chat_data['player2_symbol']}\n\n"
-            f"Turn: {next_player}",
-            reply_markup=build_keyboard(board)
-        )
+
+async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    top = db.get_leaderboard()
+    text = "🏆 Leaderboard\n\n"
+    for i, user in enumerate(top, 1):
+        text += f"{i}. {user['name']} - {user['wins']} wins\n"
+    await update.message.reply_text(text)
+
+
+async def owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        return
+    await update.message.reply_text("MongoDB Connected ✅")
 
 
 def main():
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # Detect mention
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("leaderboard", leaderboard))
+    app.add_handler(CommandHandler("owner", owner))
     app.add_handler(MessageHandler(filters.Entity("mention"), mention_handler))
     app.add_handler(CallbackQueryHandler(button_handler))
 
-    print("Bot Running...")
     app.run_polling()
 
 
