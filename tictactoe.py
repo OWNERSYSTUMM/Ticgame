@@ -7,9 +7,23 @@ def build_board(board):
         row = []
         for j in range(3):
             index = i + j
-            text = board[index] if board[index] != " " else "◻️"
+            text = board[index] if board[index] != " " else "⬜"
             row.append(
                 InlineKeyboardButton(text, callback_data=f"move_{index}")
+            )
+        keyboard.append(row)
+    return InlineKeyboardMarkup(keyboard)
+
+
+def build_static_board(board):
+    keyboard = []
+    for i in range(0, 9, 3):
+        row = []
+        for j in range(3):
+            index = i + j
+            text = board[index] if board[index] != " " else "⬜"
+            row.append(
+                InlineKeyboardButton(text, callback_data="locked")
             )
         keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
