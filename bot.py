@@ -36,7 +36,7 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
         id=str(uuid.uuid4()),
         title="🎮 Tic Tac Toe",
         description="Start a new game",
-        input_message_content=InputTextMessageContent("‎"),
+        input_message_content=InputTextMessageContent("🎮 Tic Tac Toe"),
         reply_markup=keyboard,
     )
 
