@@ -1,11 +1,17 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+import uuid
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+)
 from telegram.ext import (
     ApplicationBuilder,
     CallbackQueryHandler,
     ContextTypes,
-    MessageHandler,
     CommandHandler,
-    filters,
+    InlineQueryHandler,
 )
 
 from config import BOT_TOKEN, OWNER_ID
@@ -14,26 +20,9 @@ from game_manager import create_game, get_game, delete_game
 import database as db
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_chat.type != "private":
-        return
-    await update.message.reply_text(
-        "🎮 Tic Tac Toe Bot\n\nTag me in group to play.\n/leaderboard"
-    )
-
-
-async def mention_handler(update, context):
-    if update.effective_chat.type == "private":
-        return
-
-    if not update.message or not update.message.text:
-        return
-
-    bot_username = context.bot.username.lower()
-    text = update.message.text.lower()
-
-    if f"@{bot_username}" not in text:
-        return
+# ───────── INLINE PLAY CARD ─────────
+async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.inline_query
 
     keyboard = InlineKeyboardMarkup([
         [
@@ -43,9 +32,18 @@ async def mention_handler(update, context):
         [InlineKeyboardButton("🤖 AI", callback_data="choose_AI")]
     ])
 
-    await update.message.reply_text("‎", reply_markup=keyboard)
+    result = InlineQueryResultArticle(
+        id=str(uuid.uuid4()),
+        title="🎮 Tic Tac Toe",
+        description="Start a new game",
+        input_message_content=InputTextMessageContent("‎"),
+        reply_markup=keyboard,
+    )
+
+    await query.answer([result], cache_time=0)
 
 
+# ───────── BUTTON HANDLER ─────────
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -140,13 +138,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+# ───────── COMMANDS ─────────
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🎮 Tic Tac Toe Bot\n\nUse me inline:\n@YourBotUsername"
+    )
+
 async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    top = db.get_leaderboard()
+    top = db.leaderboard()
     text = "🏆 Leaderboard\n\n"
     for i, user in enumerate(top, 1):
         text += f"{i}. {user['name']} - {user['wins']} wins\n"
     await update.message.reply_text(text)
-
 
 async def owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
@@ -154,18 +157,14 @@ async def owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("MongoDB Connected ✅")
 
 
+# ───────── MAIN ─────────
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("leaderboard", leaderboard))
     app.add_handler(CommandHandler("owner", owner))
-    app.add_handler(
-        MessageHandler(
-            filters.TEXT & (~filters.COMMAND),
-            mention_handler
-        )
-    )
+    app.add_handler(InlineQueryHandler(inline_query))
     app.add_handler(CallbackQueryHandler(button_handler))
 
     app.run_polling()
