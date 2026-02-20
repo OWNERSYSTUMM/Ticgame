@@ -48,7 +48,14 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    message_id = query.message.message_id
+    # Inline-safe key
+    game_key = query.inline_message_id or (
+        query.message.message_id if query.message else None
+    )
+
+    if not game_key:
+        return
+
     user = query.from_user
     data = query.data
 
@@ -56,12 +63,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         symbol = "❌" if data == "choose_X" else "⭕"
         ai = True if data == "choose_AI" else False
 
-        create_game(message_id, user.id, user.first_name, symbol, ai)
+        create_game(game_key, user.id, user.first_name, symbol, ai)
         db.get_user(user.id, user.first_name)
 
         if ai:
             await query.edit_message_reply_markup(
-                reply_markup=build_board(get_game(message_id)["board"])
+                reply_markup=build_board(get_game(game_key)["board"])
             )
         else:
             join_btn = InlineKeyboardMarkup(
@@ -71,7 +78,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == "join":
-        game = get_game(message_id)
+        game = get_game(game_key)
         if not game or user.id == game["player1"]:
             return
 
@@ -85,7 +92,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data.startswith("move_"):
-        game = get_game(message_id)
+        game = get_game(game_key)
         if not game:
             return
 
@@ -98,28 +105,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if winner:
             if winner == "Draw":
-                db.add_draw(game["player1"])
-                if game["player2"]:
-                    db.add_draw(game["player2"])
                 text = "🤝 Draw!"
             else:
-                winner_id = (
-                    game["player1"]
-                    if winner == game["symbol1"]
-                    else game["player2"]
-                )
-                loser_id = (
-                    game["player2"]
-                    if winner_id == game["player1"]
-                    else game["player1"]
-                )
-                db.add_win(winner_id)
-                if loser_id:
-                    db.add_loss(loser_id)
                 text = f"🏆 {user.first_name} Wins!"
 
             await query.edit_message_text(text)
-            delete_game(message_id)
+            delete_game(game_key)
             return
 
         if game["ai"]:
@@ -136,7 +127,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_reply_markup(
             reply_markup=build_board(game["board"])
         )
-
 
 # ───────── COMMANDS ─────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
