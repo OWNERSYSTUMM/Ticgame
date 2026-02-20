@@ -31,14 +31,12 @@ def build_game_text(game):
         else player2
     )
 
-    text = (
+    return (
         "🎮 Tic Tac Toe\n\n"
         f"{game['symbol1']} {player1}\n"
         f"{game['symbol2']} {player2}\n\n"
         f"👉 Turn: {turn_name}"
     )
-
-    return text
 
 
 # ───────── INLINE PLAY CARD ─────────
@@ -67,7 +65,8 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ───────── BUTTON HANDLER ─────────
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    user = query.from_user
+    data = query.data
 
     game_key = query.inline_message_id or (
         query.message.message_id if query.message else None
@@ -76,9 +75,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not game_key:
         return
 
-    user = query.from_user
-    data = query.data
-
     # ───── Choose Symbol ─────
     if data.startswith("choose_"):
         symbol = "❌" if data == "choose_X" else "⭕"
@@ -86,13 +82,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         create_game(game_key, user.id, user.first_name, symbol, ai)
         db.get_user(user.id, user.first_name)
-
         game = get_game(game_key)
 
         if ai:
-            text = build_game_text(game)
             await query.edit_message_text(
-                text,
+                build_game_text(game),
                 reply_markup=build_board(game["board"])
             )
         else:
@@ -114,21 +108,25 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         if user.id == game["player1"]:
-            await query.answer("Tu already game me hai 😏", show_alert=True)
+            await query.answer(
+                text="Tu already game me hai 😏",
+                show_alert=True
+            )
             return
 
         if game["player2"]:
-            await query.answer("Game full ho chuka hai 😎", show_alert=True)
+            await query.answer(
+                text="Game full ho chuka hai 😎",
+                show_alert=True
+            )
             return
 
         game["player2"] = user.id
         game["player2_name"] = user.first_name
         db.get_user(user.id, user.first_name)
 
-        text = build_game_text(game)
-
         await query.edit_message_text(
-            text,
+            build_game_text(game),
             reply_markup=build_board(game["board"])
         )
         return
@@ -142,12 +140,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 🔒 Spectator Click
         if user.id not in [game["player1"], game["player2"]]:
             await query.answer(
-                "Na munna 😏 Ye tera game nahi hai!",
+                text="🚫 Na munna! Ye tera game nahi hai.",
                 show_alert=True
             )
             return
 
-        # Identify current turn player
+        # Identify turn player
         current_turn_player = (
             game["player1"]
             if game["turn"] == game["symbol1"]
@@ -162,14 +160,17 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "😏 Sabka time aata hai...",
                 "🫵 Abhi tera number nahi aaya!"
             ]
-            await query.answer(random.choice(funny_msgs), show_alert=True)
+            await query.answer(
+                text=random.choice(funny_msgs),
+                show_alert=True
+            )
             return
 
         index = int(data.split("_")[1])
 
         if game["board"][index] != " ":
             await query.answer(
-                "❌ Ye box already filled hai!",
+                text="❌ Ye box already filled hai!",
                 show_alert=True
             )
             return
@@ -178,7 +179,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         game["board"][index] = game["turn"]
         winner = check_winner(game["board"])
 
-        # ───── Winner Check ─────
         if winner:
             if winner == "Draw":
                 db.add_draw(game["player1"])
@@ -214,18 +214,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             delete_game(game_key)
             return
 
-        # ───── AI Move ─────
-        if game["ai"]:
-            ai_index = ai_move(game["board"])
-            if ai_index is not None:
-                game["board"][ai_index] = game["symbol2"]
-
-                winner = check_winner(game["board"])
-                if winner:
-                    await query.edit_message_text("🤖 AI Wins!")
-                    delete_game(game_key)
-                    return
-
         # 🔄 Switch Turn
         game["turn"] = (
             game["symbol2"]
@@ -233,10 +221,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else game["symbol1"]
         )
 
-        text = build_game_text(game)
-
         await query.edit_message_text(
-            text,
+            build_game_text(game),
             reply_markup=build_board(game["board"])
         )
 
@@ -244,9 +230,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ───────── COMMANDS ─────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🎮 Tic Tac Toe Bot\n\n"
-        "Use me inline:\n"
-        "@YourBotUsername"
+        "🎮 Tic Tac Toe Bot\n\nUse me inline:\n@YourBotUsername"
     )
 
 
