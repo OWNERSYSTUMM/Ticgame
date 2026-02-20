@@ -109,7 +109,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ───── Join Game ─────
     if data == "join":
         game = get_game(game_key)
-        if not game or user.id == game["player1"]:
+        if not game:
+            return
+
+        if user.id == game["player1"]:
+            await query.answer("Tu already game me hai 😏", show_alert=True)
+            return
+
+        if game["player2"]:
+            await query.answer("Game full ho chuka hai 😎", show_alert=True)
             return
 
         game["player2"] = user.id
@@ -130,14 +138,33 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not game:
             return
 
-        index = int(data.split("_")[1])
-        if game["board"][index] != " ":
+        # 🔒 Only joined players allowed
+        if user.id not in [game["player1"], game["player2"]]:
+            await query.answer("Na munna 😏 Ye tera game nahi hai!", show_alert=True)
             return
 
+        # 🔒 Only turn player allowed
+        current_turn_player = (
+            game["player1"]
+            if game["turn"] == game["symbol1"]
+            else game["player2"]
+        )
+
+        if user.id != current_turn_player:
+            await query.answer("⏳ Ruk ja bhai, tera turn nahi hai!", show_alert=True)
+            return
+
+        index = int(data.split("_")[1])
+
+        if game["board"][index] != " ":
+            await query.answer("❌ Ye box already filled hai!", show_alert=True)
+            return
+
+        # ✅ Valid Move
         game["board"][index] = game["turn"]
         winner = check_winner(game["board"])
 
-        # ───── Winner ─────
+        # ───── Winner Check ─────
         if winner:
             if winner == "Draw":
                 db.add_draw(game["player1"])
@@ -185,7 +212,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     delete_game(game_key)
                     return
 
-        # ───── Switch Turn ─────
+        # 🔄 Switch Turn
         game["turn"] = (
             game["symbol2"]
             if game["turn"] == game["symbol1"]
