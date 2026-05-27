@@ -17,14 +17,14 @@ Smart Telegram Tic Tac Toe Bot With Multiplayer Support
 
 ## 🚀 𝗙𝗲𝗮𝘁𝘂𝗿𝗲𝘀
 
-✨ Multiplayer Tic Tac Toe
-🤖 Telegram Bot Support
-⚡ Fast & Lightweight
-🎮 Interactive Gameplay
-🗄 Database Support
-📱 Mobile Friendly
-🔥 Clean Python Code Structure
-🎨 Stylish Inline Buttons UI
+✨ Multiplayer Tic Tac Toe<br>
+🤖 Telegram Bot Support<br>
+⚡ Fast & Lightweight<br>
+🎮 Interactive Gameplay<br>
+🗄 Database Support<br>
+📱 Mobile Friendly<br>
+🔥 Clean Python Code Structure<br>
+🎨 Stylish Inline Buttons UI<br>
 
 
 ---
