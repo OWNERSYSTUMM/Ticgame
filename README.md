@@ -4,7 +4,7 @@
 <img src="https://img.shields.io/badge/GAME-Tic%20Tac%20Toe-black?style=for-the-badge">
 <img src="https://img.shields.io/badge/MADE%20WITH-Python-yellow?style=for-the-badge&logo=python">
 <img src="https://img.shields.io/badge/STATUS-ONLINE-success?style=for-the-badge">
-<img src="https://img.shields.io/github/stars/OWNERSYSTUMM/Ticgame?style=for-the-badge">⚡ TicGame ⚡
+<img src="https://img.shields.io/github/stars/OWNERSYSTUMM/Ticgame?style=for-the-badge"><br>⚡ TicGame ⚡
 
 Smart Telegram Tic Tac Toe Bot With Multiplayer Support
 
