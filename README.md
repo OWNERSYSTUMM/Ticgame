@@ -1,31 +1,123 @@
-🎮 Tic Tac Toe Game
+🎮 TicGame — Telegram Tic Tac Toe Bot
 
-<div align="center"><img src="https://img.shields.io/badge/Game-Tic%20Tac%20Toe-blue?style=for-the-badge&logo=gamejolt">
-<img src="https://img.shields.io/badge/Made%20With-Python-yellow?style=for-the-badge&logo=python">
-<img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge">
-<img src="https://img.shields.io/github/stars/OWNERSYSTUMM/Ticgame?style=for-the-badge">⚡ Classic Tic Tac Toe With Modern Coder Vibes ⚡
+<div align="center"><img src="https://img.shields.io/badge/BOT-Telegram-blue?style=for-the-badge&logo=telegram">
+<img src="https://img.shields.io/badge/GAME-Tic%20Tac%20Toe-black?style=for-the-badge">
+<img src="https://img.shields.io/badge/MADE%20WITH-Python-yellow?style=for-the-badge&logo=python">
+<img src="https://img.shields.io/badge/STATUS-ONLINE-success?style=for-the-badge">
+<img src="https://img.shields.io/github/stars/OWNERSYSTUMM/Ticgame?style=for-the-badge">⚡ TicGame ⚡
 
-> “Think Fast. Play Smart. Win Hard.”
+Smart Telegram Tic Tac Toe Bot With Multiplayer Support
+
+> “Challenge Your Friends Directly Inside Telegram.”
 
 
 
 </div>
 ---
 
-📌 Features
+🚀 Features
 
-✨ Beautiful Terminal UI
-🎯 Single Player & Multiplayer Mode
-🤖 Smart AI Opponent
+✨ Multiplayer Tic Tac Toe
+🤖 Telegram Bot Support
 ⚡ Fast & Lightweight
-📱 Works In Termux / Linux / Windows
-🔥 Smooth Gameplay Experience
-🎨 Stylish Colored Interface
+🎮 Interactive Gameplay
+🗄 Database Support
+📱 Mobile Friendly
+🔥 Clean Python Code Structure
+🎨 Stylish Inline Buttons UI
 
 
 ---
 
-🖼 Preview
+📂 Project Structure
+
+📦 Ticgame
+ ┣ 📜 bot.py
+ ┣ 📜 tictactoe.py
+ ┣ 📜 game_manager.py
+ ┣ 📜 database.py
+ ┣ 📜 config.py
+ ┣ 📜 requirements.txt
+ ┣ 📜 .env
+ ┗ 📜 README.md
+
+
+---
+
+🛠 Installation
+
+📥 Clone Repository
+
+git clone https://github.com/OWNERSYSTUMM/Ticgame.git
+
+📂 Open Folder
+
+cd Ticgame
+
+📦 Install Requirements
+
+pip install -r requirements.txt
+
+
+---
+
+⚙ Configuration
+
+Create .env file and add:
+
+BOT_TOKEN=your_bot_token
+OWNER_ID=your_id
+
+
+---
+
+▶ Run The Bot
+
+python bot.py
+
+
+---
+
+🎮 Gameplay
+
+Start the bot in Telegram
+
+Challenge your friend
+
+Play directly using inline buttons
+
+First player to match 3 symbols wins 🏆
+
+
+
+---
+
+🧠 Modules
+
+📌 bot.py
+
+Handles Telegram bot events and commands
+
+📌 game_manager.py
+
+Controls active matches and player turns
+
+📌 tictactoe.py
+
+Main game logic and win conditions
+
+📌 database.py
+
+Stores game/player data
+
+📌 config.py
+
+Loads bot configuration
+
+
+---
+
+📸 Preview
 
 X | O | X
 -----------
@@ -38,96 +130,19 @@ X | O | X
 
 ---
 
-🚀 Installation
+🔥 Future Updates
 
-📥 Clone Repository
+[ ] AI Opponent
 
-git clone https://github.com/OWNERSYSTUMM/Ticgame.git
-
-📂 Open Folder
-
-cd tictactoe
-
-▶ Run Game
-
-Python Version
-
-python bot.py
-
----
-
-🎮 How To Play
-
-Player X starts first
-
-Choose position from 1-9
-
-Match 3 symbols in:
-
-Row
-
-Column
-
-Diagonal
-
-
-
-
----
-
-🧠 AI Mode
-
-The bot uses smart move logic to:
-
-Block opponent moves
-
-Predict winning chances
-
-Play strategically
-
-
-
----
-
-📁 Project Structure
-
-📦 tictactoe
- ┣ 📜 bot.py
- ┣ 📜 README.md
-
-
----
-
-🌟 Screenshots
-
-<div align="center">🔥 Clean Interface
-⚡ Smooth Controls
-🎮 Retro Gaming Feel
-
-</div>
----
-
-🛠 Tech Stack
-
-🐍 Python
-
-💚 Node.js
-
-🎨 ANSI Terminal Colors
-
-
-
----
-
-📌 Future Updates
-
-[ ] Online Multiplayer
-
-[ ] GUI Version
+[ ] Ranked Matches
 
 [ ] Leaderboard System
 
-[ ] Dark Theme UI
+[ ] Match History
+
+[ ] Global Stats
+
+[ ] Tournament Mode
 
 
 
@@ -144,18 +159,18 @@ If you have ideas to improve this project, feel free to fork & contribute 🚀
 
 ⭐ Support
 
-If you like this project then give it a ⭐ on GitHub.
+Give this repo a ⭐ if you like this project.
 
 
 ---
 
 👨‍💻 Developer
 
-Made with ❤️ by Vikky
+Made With ❤️ By OWNERSYSTUMM
 
 
 ---
 
-<div align="center">💀 “Winners Never Quit.” 💀
+<div align="center">💀 PLAY • WIN • REPEAT 💀
 
 </div>
